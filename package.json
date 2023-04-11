@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "db": "typeorm-model-generator -h localhost -d realtahotel -p 5432 -u postgres -x coba1234 -e postgres -s booking,hotel,hr,master,payment,public,puchasing,resto,user",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
