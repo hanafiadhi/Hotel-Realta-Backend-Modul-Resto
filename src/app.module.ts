@@ -14,10 +14,11 @@ import { join } from 'path';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
+      host: 'containers-us-west-53.railway.app',
+      port: 7047,
       username: 'postgres',
       password: 'password',
-      database: 'hotel-realta',
+      database: 'railway',
       entities: ['dist/output/entities/*.js'],
       autoLoadEntities: true,
       synchronize: false,
