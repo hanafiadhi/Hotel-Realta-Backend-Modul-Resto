@@ -17,7 +17,7 @@ import { join } from 'path';
       host: 'containers-us-west-53.railway.app',
       port: 7047,
       username: 'postgres',
-      password: 'password',
+      password: 'Z4RlL3RWsqAB6grjc49h',
       database: 'railway',
       entities: ['dist/output/entities/*.js'],
       autoLoadEntities: true,
