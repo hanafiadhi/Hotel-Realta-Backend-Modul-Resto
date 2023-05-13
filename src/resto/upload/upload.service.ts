@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UpdateUploadDto } from './dto/update-upload.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RestoMenuPhotos } from 'output/entities/RestoMenuPhotos';
@@ -12,7 +12,7 @@ export class UploadService {
     private readonly photoRepository: Repository<RestoMenuPhotos>,
     private readonly restoMenuService: RestoMenuService,
   ) {}
-  async create(data): Promise<boolean | Error> {
+  async create(data, req): Promise<boolean | Error> {
     try {
       const Menu = await this.restoMenuService.findOnes(data.menuId);
       const arrayFoto = [];
@@ -24,7 +24,9 @@ export class UploadService {
         const newFoto: RestoMenuPhotos = {
           rempPhotoFilename: item.fileName,
           rempPrimary: item.primary ?? 0,
-          rempUrl: `http://localhost:3000/${destination}`,
+          rempUrl: `${req.protocol}://${req.get(
+            'Host',
+          )}/upload/temp/$${destination}`,
           rempReme: Menu,
           rempThumbnailFilename: Menu.remeName,
           rempId: item.id ?? null,
@@ -34,6 +36,7 @@ export class UploadService {
         fs.rename(sourceMenu, destination, function (err) {
           if (err) console.log('ERROR: ' + err);
         });
+        console.log(newFoto.rempUrl);
         arrayFoto.push(newFoto);
       }
       await this.photoRepository.save(arrayFoto);

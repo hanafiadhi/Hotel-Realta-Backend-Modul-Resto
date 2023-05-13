@@ -82,12 +82,16 @@ export class UploadController {
     return await this.fileRepository.find(+id);
   }
   @Patch('resto/photos')
-  async savingfoto(@Response() res: Res, @Body() foto: Foto) {
+  async savingfoto(
+    @Response() res: Res,
+    @Req() req: Request,
+    @Body() foto: Foto,
+  ) {
     const Response = {
       message: 'Yeay Berhasil Menyimpan Foto',
       statusCode: 200,
     };
-    await this.fileRepository.create(foto);
+    await this.fileRepository.create(foto, req);
     return res.status(200).json(Response);
   }
   @Post('upload')

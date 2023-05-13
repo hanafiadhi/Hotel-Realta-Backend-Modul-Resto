@@ -2,15 +2,20 @@ import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   Contains,
+  IsEnum,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsPositive,
   IsString,
   MaxLength,
   MinLength,
-  ValidateIf,
   ValidateNested,
 } from 'class-validator';
+
+export enum Spesial {
+  AVAILABLE = 'AVAILABLE',
+}
 
 export class CreateRestoMenuDto {
   @IsNotEmpty({
@@ -41,8 +46,9 @@ export class CreateRestoMenuDto {
   })
   @Contains('$', { message: 'Price must have $ (dollar)' })
   remePrice: string | null;
-  @ValidateIf((object, value) => value !== null)
-  remeStatus: string | null;
+  @IsEnum(Spesial)
+  @IsOptional()
+  remeStatus?: Spesial;
 
   remeModifiedDate: Date;
 }
