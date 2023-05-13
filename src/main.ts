@@ -16,6 +16,6 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
-  await app.listen(8080);
+  await app.listen(8080, '0.0.0.0');
 }
 bootstrap();
