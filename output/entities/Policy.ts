@@ -4,24 +4,24 @@ import {
   Index,
   OneToMany,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import { PolicyCategoryGroup } from "./PolicyCategoryGroup";
+} from 'typeorm';
+import { PolicyCategoryGroup } from './PolicyCategoryGroup';
 
-@Index("poli_id_pk", ["poliId"], { unique: true })
-@Entity("policy", { schema: "master" })
+@Index('poli_id_pk', ['poliId'], { unique: true })
+@Entity('policy', { schema: 'master' })
 export class Policy {
-  @PrimaryGeneratedColumn({ type: "integer", name: "poli_id" })
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'poli_id' })
   poliId: number;
 
-  @Column("character varying", {
-    name: "poli_name",
+  @Column('character varying', {
+    name: 'poli_name',
     nullable: true,
     length: 55,
   })
   poliName: string | null;
 
-  @Column("character varying", {
-    name: "poli_description",
+  @Column('character varying', {
+    name: 'poli_description',
     nullable: true,
     length: 255,
   })
@@ -29,7 +29,7 @@ export class Policy {
 
   @OneToMany(
     () => PolicyCategoryGroup,
-    (policyCategoryGroup) => policyCategoryGroup.pocaPoli
+    (policyCategoryGroup) => policyCategoryGroup.pocaPoli,
   )
   policyCategoryGroups: PolicyCategoryGroup[];
 }

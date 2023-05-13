@@ -4,30 +4,30 @@ import {
   Index,
   OneToMany,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import { WorkOrderDetail } from "./WorkOrderDetail";
+} from 'typeorm';
+import { WorkOrderDetail } from './WorkOrderDetail';
 
-@Index("seta_id_pk", ["setaId"], { unique: true })
-@Index("service_task_seta_name_key", ["setaName"], { unique: true })
-@Entity("service_task", { schema: "master" })
+@Index('seta_id_pk', ['setaId'], { unique: true })
+@Index('service_task_seta_name_key', ['setaName'], { unique: true })
+@Entity('service_task', { schema: 'master' })
 export class ServiceTask {
-  @PrimaryGeneratedColumn({ type: "integer", name: "seta_id" })
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'seta_id' })
   setaId: number;
 
-  @Column("character varying", {
-    name: "seta_name",
+  @Column('character varying', {
+    name: 'seta_name',
     nullable: true,
     unique: true,
     length: 85,
   })
   setaName: string | null;
 
-  @Column("smallint", { name: "set_seq", nullable: true })
+  @Column('smallint', { name: 'set_seq', nullable: true })
   setSeq: number | null;
 
   @OneToMany(
     () => WorkOrderDetail,
-    (workOrderDetail) => workOrderDetail.wodeSeta
+    (workOrderDetail) => workOrderDetail.wodeSeta,
   )
   workOrderDetails: WorkOrderDetail[];
 }

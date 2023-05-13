@@ -4,15 +4,15 @@ import {
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import { Bank } from "./Bank";
-import { PaymentGateway } from "./PaymentGateway";
-import { UserAccounts } from "./UserAccounts";
+} from 'typeorm';
+import { Bank } from './Bank';
+import { PaymentGateway } from './PaymentGateway';
+import { UserAccounts } from './UserAccounts';
 
-@Index("entitys_pkey", ["entityId"], { unique: true })
-@Entity("entitys", { schema: "payment" })
+@Index('entitys_pkey', ['entityId'], { unique: true })
+@Entity('entitys', { schema: 'payment' })
 export class Entitys {
-  @PrimaryGeneratedColumn({ type: "integer", name: "entity_id" })
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'entity_id' })
   entityId: number;
 
   @OneToOne(() => Bank, (bank) => bank.bankEntity)

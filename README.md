@@ -32,6 +32,18 @@
 $ npm install
 ```
 
+## Creating database and insert data
+
+before running please creat database with name realtahotel or whatever you wont for this example i choose realtahotel
+
+```creating schema
+$ psql -U db_user realtahotel < create.sql
+```
+
+```insert data
+$ psql -U username -d realtahotel -f insert.sql
+```
+
 ## Running the app
 
 ```bash

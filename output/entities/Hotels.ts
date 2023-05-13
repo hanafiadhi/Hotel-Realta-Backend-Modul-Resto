@@ -6,44 +6,44 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import { BookingOrders } from "./BookingOrders";
-import { Facilities } from "./Facilities";
-import { HotelReviews } from "./HotelReviews";
-import { Address } from "./Address";
+} from 'typeorm';
+import { BookingOrders } from './BookingOrders';
+import { Facilities } from './Facilities';
+import { HotelReviews } from './HotelReviews';
+import { Address } from './Address';
 
-@Index("pk_hotel_id", ["hotelId"], { unique: true })
-@Entity("hotels", { schema: "hotel" })
+@Index('pk_hotel_id', ['hotelId'], { unique: true })
+@Entity('hotels', { schema: 'hotel' })
 export class Hotels {
-  @PrimaryGeneratedColumn({ type: "integer", name: "hotel_id" })
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'hotel_id' })
   hotelId: number;
 
-  @Column("character varying", {
-    name: "hotel_name",
+  @Column('character varying', {
+    name: 'hotel_name',
     nullable: true,
     length: 85,
   })
   hotelName: string | null;
 
-  @Column("character varying", {
-    name: "hotel_description",
+  @Column('character varying', {
+    name: 'hotel_description',
     nullable: true,
     length: 500,
   })
   hotelDescription: string | null;
 
-  @Column("smallint", { name: "hotel_rating_star", nullable: true })
+  @Column('smallint', { name: 'hotel_rating_star', nullable: true })
   hotelRatingStar: number | null;
 
-  @Column("character varying", {
-    name: "hotel_phonenumber",
+  @Column('character varying', {
+    name: 'hotel_phonenumber',
     nullable: true,
     length: 25,
   })
   hotelPhonenumber: string | null;
 
-  @Column("timestamp without time zone", {
-    name: "hotel_modified_date",
+  @Column('timestamp without time zone', {
+    name: 'hotel_modified_date',
     nullable: true,
   })
   hotelModifiedDate: Date | null;
@@ -58,9 +58,9 @@ export class Hotels {
   hotelReviews: HotelReviews[];
 
   @ManyToOne(() => Address, (address) => address.hotels, {
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
-  @JoinColumn([{ name: "hotel_addr_id", referencedColumnName: "addrId" }])
+  @JoinColumn([{ name: 'hotel_addr_id', referencedColumnName: 'addrId' }])
   hotelAddr: Address;
 }

@@ -6,18 +6,18 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-} from "typeorm";
-import { Address } from "./Address";
-import { Country } from "./Country";
+} from 'typeorm';
+import { Address } from './Address';
+import { Country } from './Country';
 
-@Index("prov_id_pk", ["provId"], { unique: true })
-@Entity("proviences", { schema: "master" })
+@Index('prov_id_pk', ['provId'], { unique: true })
+@Entity('proviences', { schema: 'master' })
 export class Proviences {
-  @PrimaryGeneratedColumn({ type: "integer", name: "prov_id" })
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'prov_id' })
   provId: number;
 
-  @Column("character varying", {
-    name: "prov_name",
+  @Column('character varying', {
+    name: 'prov_name',
     nullable: true,
     length: 85,
   })
@@ -27,9 +27,9 @@ export class Proviences {
   addresses: Address[];
 
   @ManyToOne(() => Country, (country) => country.proviences, {
-    onDelete: "CASCADE",
-    onUpdate: "CASCADE",
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
-  @JoinColumn([{ name: "prov_country_id", referencedColumnName: "countryId" }])
+  @JoinColumn([{ name: 'prov_country_id', referencedColumnName: 'countryId' }])
   provCountry: Country;
 }
