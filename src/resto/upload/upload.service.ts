@@ -26,7 +26,7 @@ export class UploadService {
           rempPrimary: item.primary ?? 0,
           rempUrl: `${req.protocol}://${req.get(
             'Host',
-          )}/upload/temp/$${destination}`,
+          )}/upload/temp/${destination}`,
           rempReme: Menu,
           rempThumbnailFilename: Menu.remeName,
           rempId: item.id ?? null,
