@@ -24,9 +24,7 @@ export class UploadService {
         const newFoto: RestoMenuPhotos = {
           rempPhotoFilename: item.fileName,
           rempPrimary: item.primary ?? 0,
-          rempUrl: `${req.protocol}://${req.get(
-            'Host',
-          )}/upload/temp/${destination}`,
+          rempUrl: `${req.protocol}://${req.get('Host')}${destination}`,
           rempReme: Menu,
           rempThumbnailFilename: Menu.remeName,
           rempId: item.id ?? null,
