@@ -242,12 +242,12 @@ export class RestoMenuService {
   }
   async createBil(bil: CreateBill) {
     try {
-      const orderNumber = await this.createOrderNumber();
+      // const orderNumber = await this.createOrderNumber();
 
-      bil.ormeOrderNumber = orderNumber;
+      // bil.ormeOrderNumber = orderNumber;
       await this.chooseMenu(bil);
       const newOrder: OrderMenus = {
-        ormeOrderNumber: orderNumber,
+        ormeOrderNumber: '',
         ormeOrderDate: bil.ormeOrderDate,
         ormeTotalItem: bil.ormeTotalItem,
         ormeCardnumber: bil.ormeCardnumber,
@@ -273,8 +273,9 @@ export class RestoMenuService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
+      const orderNumber = await this.createOrderNumber();
       const order = new OrderMenus();
-      order.ormeOrderNumber = data.ormeOrderNumber;
+      order.ormeOrderNumber = orderNumber;
       order.ormeOrderDate = data.ormeOrderDate;
       order.ormeTotalItem = data.ormeTotalItem;
       order.ormeCardnumber = data.ormeCardnumber;
