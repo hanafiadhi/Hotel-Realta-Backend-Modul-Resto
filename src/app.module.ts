@@ -16,10 +16,10 @@ import { join } from 'path';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'containers-us-west-26.railway.app',
-      port: 5860,
+      host: 'containers-us-west-151.railway.app',
+      port: 7056,
       username: 'postgres',
-      password: 'uAGOgKAvVlXiNxd2tHg0',
+      password: 'GgMMJADnW0ycv0ZbQzXQ',
       database: 'railway',
       entities: ['dist/output/entities/*.js'],
       autoLoadEntities: true,
