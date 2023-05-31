@@ -4,6 +4,8 @@ import {
   HttpException,
   BadRequestException,
   HttpStatus,
+  forwardRef,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   CreateBill,
@@ -19,6 +21,7 @@ import { Cache } from 'cache-manager';
 import { OrderMenuDetail } from 'output/entities/OrderMenuDetail';
 import { OrderMenus } from 'output/entities/OrderMenus';
 import { PageDto, PageMetaDto, PageOptionsDto } from './dto/page.dto';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class RestoMenuService {
@@ -31,6 +34,8 @@ export class RestoMenuService {
     @Inject('CACHE_MANAGER')
     private cacheManager: Cache,
     private dataSource: DataSource,
+    @Inject(forwardRef(() => UploadService))
+    private uploadService: UploadService,
   ) {}
   findDuplicate(obj: object): Promise<boolean> {
     return this.restoRespository.exist(obj);
@@ -51,14 +56,21 @@ export class RestoMenuService {
     }
 
     const newMenu = await this.restoRespository.create(createRestoMenuDto);
-    await this.cacheManager.del('restoCaching');
+    // await this.cacheManager.del('restoCaching');
     return await this.restoRespository.save(newMenu);
   }
 
   async findAll(pageOptionsDto: PageOptionsDto) {
-    const queryDB = await this.restoRespository.createQueryBuilder(
-      'resto_menus',
-    );
+    const queryDB = await this.restoRespository
+      .createQueryBuilder('resto_menus')
+      .leftJoinAndSelect(
+        'resto_menus.restoMenuPhotos',
+        'resto_menu_photos',
+        'resto_menu_photos.rempPrimary = :primary',
+        {
+          primary: '1',
+        },
+      );
 
     if (pageOptionsDto.order) {
       queryDB.orderBy('resto_menus.remePrice', pageOptionsDto.order);
@@ -70,8 +82,6 @@ export class RestoMenuService {
         name: `%${pageOptionsDto.search}%`,
       });
     }
-    console.log(pageOptionsDto.skip);
-    console.log(pageOptionsDto.take);
     queryDB.skip(pageOptionsDto.skip).take(pageOptionsDto.take);
 
     const itemCount = await queryDB.getCount();
@@ -86,13 +96,16 @@ export class RestoMenuService {
         where: {
           remeId: id,
         },
+        relations: {
+          restoMenuPhotos: true,
+        },
       });
       if (!data) {
         throw Error;
       }
       return data;
     } catch (error) {
-      throw new BadRequestException(`Menu with id ${id} not found`);
+      throw new NotFoundException(`Menu with id ${id} not found`);
     }
   }
 
@@ -100,17 +113,39 @@ export class RestoMenuService {
     menu: RestoMenus,
     updateRestoMenuDto: UpdateRestoMenuDto,
   ): Promise<RestoMenus | never> {
-    await this.cacheManager.del('restoCaching');
+    // await this.cacheManager.del('restoCaching');
     Object.assign(menu, updateRestoMenuDto);
     return this.restoRespository.save(menu);
   }
 
   async remove(id: number) {
-    await this.cacheManager.del('restoCaching');
-    return this.restoRespository.delete(id);
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const searchToDelete = await this.uploadService.find(id); //array
+      if (searchToDelete.length !== 0) {
+        await this.uploadService.removeAll(searchToDelete);
+      }
+      const waitingDelete = await this.restoRespository.delete(id);
+
+      await queryRunner.commitTransaction();
+      return waitingDelete;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: error?.message,
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    } finally {
+      await queryRunner.release();
+    }
   }
-  findOrderMenu(id?: number) {
-    return this.oMenuRepo.find({
+  async findOrderMenu(id: number) {
+    return await this.oMenuRepo.findOne({
       where: { ormeId: id },
       relations: {
         orderMenuDetails: true,
@@ -134,25 +169,15 @@ export class RestoMenuService {
       },
       take: 1,
     });
-    let text = serial[0].ormeOrderNumber;
-
     const regex = /MENUS#\d{8}-(\d{4})/;
-    const match = regex.exec(text);
-    let data = parseInt(match[1], 10);
-    data++;
-
-    const datas = data.toString().padStart(4, '0');
-    text = text.replace(match[1], datas);
-    const regexs = /MENUS#(\d{8})-\d{4}/;
+    const match = regex.exec(serial[0].ormeOrderNumber);
+    const data = (parseInt(match[1], 10) + 1).toString().padStart(4, '0');
     const date = new Date();
     const year = date.getFullYear().toString();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
-
-    const matchs = regexs.exec(text);
     const newDate = `${year}${month}${day}`;
-    text = text.replace(matchs[1], newDate);
-    return text;
+    return `MENUS#${newDate}-${data}`;
   }
   async mapping2(
     id: Array<number>,
@@ -242,9 +267,6 @@ export class RestoMenuService {
   }
   async createBil(bil: CreateBill) {
     try {
-      // const orderNumber = await this.createOrderNumber();
-
-      // bil.ormeOrderNumber = orderNumber;
       await this.chooseMenu(bil);
       const newOrder: OrderMenus = {
         ormeOrderNumber: '',
@@ -301,7 +323,6 @@ export class RestoMenuService {
         list.push(listMenus);
       }
       const creating2 = this.oMDetailRepo.create(list);
-
       await queryRunner.manager.save(creating2);
 
       await queryRunner.commitTransaction();

@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RestoMenuModule } from './resto/resto-menu/resto-menu.module';
 import { UploadModule } from './resto/upload/upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { join } from 'path';
 @Module({
   imports: [
@@ -23,10 +25,21 @@ import { join } from 'path';
       autoLoadEntities: true,
       synchronize: false,
     }),
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 10,
+    }),
     RestoMenuModule,
     UploadModule,
   ],
   controllers: [AppController],
-  providers: [AppService, BankService],
+  providers: [
+    AppService,
+    BankService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

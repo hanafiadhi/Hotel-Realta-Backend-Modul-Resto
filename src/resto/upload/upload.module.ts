@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { UploadService } from './upload.service';
 import { UploadController } from './upload.controller';
 import { RestoMenuPhotos } from 'output/entities/RestoMenuPhotos';
@@ -6,8 +6,12 @@ import { TypeOrmModule } from '@nestjs/typeorm/dist';
 
 import { RestoMenuModule } from '../resto-menu/resto-menu.module';
 @Module({
-  imports: [TypeOrmModule.forFeature([RestoMenuPhotos]), RestoMenuModule],
+  imports: [
+    TypeOrmModule.forFeature([RestoMenuPhotos]),
+    forwardRef(() => RestoMenuModule),
+  ],
   controllers: [UploadController],
   providers: [UploadService],
+  exports: [UploadService],
 })
 export class UploadModule {}

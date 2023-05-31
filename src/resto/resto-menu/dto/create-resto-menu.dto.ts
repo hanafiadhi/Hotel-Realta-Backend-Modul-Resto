@@ -1,4 +1,5 @@
 import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayNotEmpty,
   Contains,
@@ -18,6 +19,13 @@ export enum Spesial {
 }
 
 export class CreateRestoMenuDto {
+  @ApiProperty({
+    description: 'Menu Resto itu required dan harus unique',
+    minLength: 3,
+    maxLength: 55,
+    type: String,
+    required: true,
+  })
   @IsNotEmpty({
     message: 'Resto Menu Is Required',
   })
@@ -39,13 +47,31 @@ export class CreateRestoMenuDto {
   @MaxLength(255, {
     message: 'Description To Long',
   })
+  @ApiProperty({
+    description: 'desciption menu bebas yang ',
+    minLength: 5,
+    maxLength: 255,
+    type: String,
+  })
   remeDescription: string | null;
 
+  @ApiProperty({
+    description: 'Contoh Harganya $9000.00 dan harus ada simbol $',
+    type: String,
+    required: true,
+  })
   @IsNotEmpty({
     message: 'Price Is Required',
   })
   @Contains('$', { message: 'Price must have $ (dollar)' })
   remePrice: string | null;
+
+  @ApiProperty({
+    enum: Spesial,
+    description: 'remeStatus is Optional tapi ketika di isi harus AVAILABLE',
+    required: false,
+  })
+  // @ApiPropertyOptional({ description: 'optional' })
   @IsEnum(Spesial)
   @IsOptional()
   remeStatus?: Spesial;
@@ -54,15 +80,26 @@ export class CreateRestoMenuDto {
 }
 
 export class CreateMenuDetail {
+  @ApiProperty({
+    description: 'ID dari Menu',
+    minimum: 1,
+  })
   @IsNotEmpty({ message: 'ID is Required' })
   @IsPositive({ message: 'ID must positif' })
   @IsInt({ message: 'ID must be integer' })
   omdeId?: number;
+
   ormePrice?: string | null;
+
+  @ApiProperty({
+    description: 'jumlah quantity menu yang di pesan',
+    minimum: 1,
+  })
   @IsNotEmpty({ message: 'Qty is Required' })
   @IsPositive({ message: 'ID must positif' })
   @IsInt({ message: 'ID must be integer' })
   ormeQty?: number | null;
+
   ormeSubtotal?: string | number;
   ormeDiscount?: string | null;
   omdeReme?: number;
@@ -80,12 +117,15 @@ export class CreateBill {
   ormeTotalItem: number | null;
   ormeTotalDiscount: string | null;
   ormeTotalAmount: string | null | number;
+  @ApiProperty()
   @IsNotEmpty({ message: 'Pay Type is Required' })
   @IsString({ message: 'Pay Type is mus string' })
   @MaxLength(2, {
     message: 'Pay Type is Max',
   })
   ormePayType: string | null;
+
+  @ApiProperty()
   @IsNotEmpty({ message: 'Card Number is Required' })
   @IsString({ message: 'Card Number is mus string' })
   @MinLength(7, {
@@ -95,6 +135,8 @@ export class CreateBill {
     message: 'Card Number is Max',
   })
   ormeCardnumber: string | null;
+
+  @ApiProperty()
   @IsNotEmpty({ message: 'Paid Type is Required' })
   @IsString({ message: 'Paid Type is mus string' })
   @MaxLength(2, {
@@ -103,6 +145,8 @@ export class CreateBill {
   ormeIsPaid: string | null;
   ormeModifiedDate: Date | null;
   ormeUserId: number | null;
+
+  @ApiProperty({ type: [CreateMenuDetail] })
   @IsNotEmpty({
     message: 'List Menu is required',
   })

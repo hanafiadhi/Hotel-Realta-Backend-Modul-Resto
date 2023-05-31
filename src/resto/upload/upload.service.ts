@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { UpdateUploadDto } from './dto/update-upload.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RestoMenuPhotos } from 'output/entities/RestoMenuPhotos';
@@ -10,7 +10,8 @@ export class UploadService {
   constructor(
     @InjectRepository(RestoMenuPhotos)
     private readonly photoRepository: Repository<RestoMenuPhotos>,
-    private readonly restoMenuService: RestoMenuService,
+    @Inject(forwardRef(() => RestoMenuService))
+    private restoMenuService: RestoMenuService,
   ) {}
   async create(data, req): Promise<boolean | Error> {
     try {
@@ -24,17 +25,14 @@ export class UploadService {
         const newFoto: RestoMenuPhotos = {
           rempPhotoFilename: item.fileName,
           rempPrimary: item.primary ?? 0,
-          rempUrl: `${req.protocol}://${req.get('Host')}${destination}`,
+          rempUrl: `${req.protocol}://${req.get('Host')}/${destination}`,
           rempReme: Menu,
           rempThumbnailFilename: Menu.remeName,
           rempId: item.id ?? null,
         };
-        console.log(newFoto.rempUrl);
-        //pindahkan fotonya ke folder RestoMenu foto
         fs.rename(sourceMenu, destination, function (err) {
           if (err) console.log('ERROR: ' + err);
         });
-        console.log(newFoto.rempUrl);
         arrayFoto.push(newFoto);
       }
       await this.photoRepository.save(arrayFoto);
@@ -57,6 +55,7 @@ export class UploadService {
 
   async find(id: number) {
     const Menu = await this.restoMenuService.findOnes(id);
+
     return await this.photoRepository.find({
       order: {
         rempId: 'DESC',
@@ -86,5 +85,18 @@ export class UploadService {
       console.log(error.path);
     }
     return await this.photoRepository.delete(id);
+  }
+
+  async removeAll(data) {
+    for (let index = 0; index < data.length; index++) {
+      const element = data[index];
+      try {
+        const filePath = './restomenuphotos/' + element.rempPhotoFilename;
+        fs.unlinkSync(filePath);
+      } catch (error) {
+        console.log(error.path);
+      }
+    }
+    return await this.photoRepository.remove(data);
   }
 }

@@ -14,8 +14,9 @@ import {
   Get,
   Patch,
   Delete,
-  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Response as Res } from 'express';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
@@ -26,12 +27,20 @@ import { UploadService } from './upload.service';
 import { of } from 'rxjs';
 import { join } from 'path';
 import { Foto } from './dto/create-upload.dto';
+import {
+  ApiNotFoundResponse,
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiResponse,
+  ApiTags,
+  ApiUnprocessableEntityResponse,
+} from '@nestjs/swagger';
 
 const UPLOAD_DIR = './upload/temp/';
-const MAX_UPLOAD_SIZE = 10; // in MB
-const MAX_FILES_COUNT = 2; // Maximum number of files that can be uploaded at once
+const MAX_UPLOAD_SIZE = 10;
+const MAX_FILES_COUNT = 2;
 
-// User interface of the authenticated user
 interface PrepareFile {
   id: number;
   moduleNama: string;
@@ -77,10 +86,53 @@ export class UploadController {
   async getAll() {
     return await this.fileRepository.findAll();
   }
+
+  @ApiTags('Upload Menu Resto')
   @Get('resto-menu/foto/:id')
+  @ApiResponse({
+    status: 200,
+    description:
+      'send Id Menu nanti akan di carikan foto yang ber id tersebut klo blm ada fotonya akan memberikan empty array saja',
+    schema: {
+      example: [
+        {
+          originalName: 'Screenshot 2023-05-26 223845.png',
+          fileName: '1685206577920.png',
+          imageSrc: 'http://localhost:3000/upload/temp/1685206577920.png',
+        },
+      ],
+    },
+  })
   async findMenufoto(@Param('id', ParseIntPipe) id: string) {
     return await this.fileRepository.find(+id);
   }
+
+  @ApiTags('Upload Menu Resto')
+  @ApiBody({
+    description:
+      'silahkan masukan response setelah upload foto dan tambahkan ID menuny juga',
+    type: Foto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'berhasil mengupdate foto untuk menu resto',
+    type: Foto,
+  })
+  @ApiNotFoundResponse({
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: {
+          type: 'number',
+          example: 404,
+        },
+        message: {
+          type: 'string',
+          example: 'Menu with Your ID not found',
+        },
+      },
+    },
+  })
   @Patch('resto/photos')
   async savingfoto(
     @Response() res: Res,
@@ -94,15 +146,70 @@ export class UploadController {
     await this.fileRepository.create(foto, req);
     return res.status(200).json(Response);
   }
+
+  @ApiTags('Upload Menu Resto')
+  @Throttle(3, 60)
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', { storage: defaultConfig }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'Upload Image successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: {
+          type: 'number',
+          example: '201',
+        },
+        image: {
+          type: 'object',
+          example: {
+            originalName: 'Screenshot 2023-05-26 223845.png',
+            fileName: '1685206577920.png',
+            imageSrc: 'http://localhost:3000/upload/temp/1685206577920.png',
+          },
+        },
+      },
+    },
+  })
+  @ApiUnprocessableEntityResponse({
+    description: 'Upload Image dengan format jpg | jpeg | png',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: {
+          type: 'number',
+          example: '422',
+        },
+        message: {
+          type: 'string',
+          example: 'File is Required',
+        },
+        error: {
+          type: 'string',
+          example: 'Unprocessable Entity',
+        },
+      },
+    },
+  })
   async uploadFile(
     @Response() res: Res,
     @Req() req: Request,
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addFileTypeValidator({
-          fileType: /(jpg|jpeg|png|gif)$/,
+          fileType: /(jpg|jpeg|png)$/,
         })
         .addValidator(
           new MaxFileSize({
@@ -122,7 +229,8 @@ export class UploadController {
         file.filename
       }`,
     };
-    return res.json({ message: 'success', image });
+
+    return res.json({ statusCode: 201, image });
     // return of(
     //   res.sendFile(join(process.cwd(), `/upload/temp/${file.filename}`)),
     // );
@@ -161,6 +269,39 @@ export class UploadController {
     // return this.fileRepository.create(newData);
     return newData;
   }
+
+  @ApiTags('Upload Menu Resto')
+  @ApiResponse({
+    status: 200,
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: {
+          type: 'number',
+          example: 200,
+        },
+        message: {
+          type: 'string',
+          example: 'Berhasil Delete image',
+        },
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: {
+          type: 'number',
+          example: 404,
+        },
+        message: {
+          type: 'string',
+          example: 'Foto for your menu Not Found',
+        },
+      },
+    },
+  })
   @Delete('resto-menu/foto/:id')
   async remove(
     @Response() res: Res,
@@ -168,7 +309,7 @@ export class UploadController {
   ): Promise<Res> {
     const data = await this.fileRepository.findOne(+id);
     if (!data) {
-      throw new BadRequestException('id not Found');
+      throw new NotFoundException('id not Found');
     }
     const deletes = await this.fileRepository.remove(+id, data);
     if (deletes.affected === 1) {
